@@ -1,10 +1,8 @@
 `timescale 1ns / 1ps
 module testbench;
-    reg  [31:0] SW;
-    wire [31:0] out_res;
-    reg  reset, clock;
+    reg  clock;
 
-    cpu processor(.clk(clock), .rst(reset), .OUT(out_res), .IN(SW));
+    cpu processor(.clk(clock));
 
     always begin
         #1 clock = ~clock;
@@ -12,9 +10,8 @@ module testbench;
 
     initial begin
         clock = 0;
-        SW = 32'd4;
-        $monitor("PC=%d :: Instr=%32b :: OUT = %d", testbench.processor.PC, testbench.processor.Instr, out_res);
-        #100
+        $monitor("PC=%d :: Instr=%8h ::", testbench.processor.PC, testbench.processor.inst);
+        #1000
         $finish;
     end
    initial begin

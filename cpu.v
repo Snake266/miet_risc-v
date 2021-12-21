@@ -10,10 +10,10 @@ module cpu (
    wire [31:0] imm_b = {{19{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8]};
 
    instruction_memory  im(.A(PC),
-                           .RD(Instr)
+                           .RD(inst)
                            );
-   wire [31:0] i;
-   wire        rfwe, jal, jarl, br, ws, mwe;
+   wire [3:0] i;
+   wire        rfwe, jal, jalr, br, ws, mwe;
    wire [4:0]  aop;
    wire [1:0]  srcA;
    wire [2:0]  srcB;
@@ -28,7 +28,7 @@ module cpu (
                          .wb_src_sel_o(ws),
                          .branch_o(br),
                          .jal_o(jal),
-                         .jarl_o(jarl)
+                         .jalr_o(jarl)
                          );
 
 
@@ -36,9 +36,9 @@ module cpu (
    wire [31:0] rd1, rd2;
    register_file rf(.CLK(clk),
                     .WE3(rfwe),
-                    .A1(Instr[19:15]),
-                    .A2(Instr[24:20]),
-                    .A3(Instr[11:7]),
+                    .A1(inst[19:15]),
+                    .A2(inst[24:20]),
+                    .A3(inst[11:7]),
                     .RD1(rd1),
                     .RD2(rd2),
                     .WD3(torf)
@@ -68,7 +68,16 @@ module cpu (
                         .Result(res),
                         .Flag(comp)
                         );
-   //TODO: Data memory
+   wire [31:0] mem;
+   data_memory dm(
+                  .clk(clk),
+                  .WE(mwe),
+                  .I(i),
+                  .A(res),
+                  .WD(rd2),
+                  .RD(mem)
+                  );
+   assign torf = (ws) ? mem : res;
 
    reg [31:0]  PC = 0;
    always @(posedge clk) PC <= topc;
