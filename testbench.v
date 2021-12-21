@@ -10,7 +10,10 @@ module testbench;
 
     initial begin
         clock = 0;
-        $monitor("PC=%d :: Instr=%8h ::", testbench.processor.PC, testbench.processor.inst);
+       $monitor("PC=%d :: Instr=%8h :: x2 = %d",
+                 testbench.processor.PC,
+                 testbench.processor.inst,
+                testbench.processor.rf.RAM[2]);
         #1000
         $finish;
     end
