@@ -10,17 +10,16 @@ module testbench;
 
     initial begin
         clock = 0;
-       $monitor("PC=%d :: Instr=%8h :: x2 = %d",
+       $monitor("PC=%d :: Instr=%8h :: x11 = %d",
                  testbench.processor.PC,
                  testbench.processor.inst,
-                testbench.processor.rf.RAM[2]);
-        #1000
+                testbench.processor.rf.RAM[11]);
+        #100
         $finish;
     end
    initial begin
       $dumpfile("test.vcd");
       $dumpvars(0, testbench);
    end
-
 
 endmodule

@@ -3,17 +3,16 @@ module cpu (
             );
 
    wire [31:0] inst;
-
    wire [31:0] imm_i = {{20{inst[31]}}, inst[31:20]};
    wire [31:0] imm_s = {{20{inst[31]}}, inst[31:25], inst[11:7]};
-   wire [31:0] imm_j = {{11{inst[31]}}, inst[31], inst[19:12], inst[20], inst[30:21]};
-   wire [31:0] imm_b = {{19{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8]};
+   wire [31:0] imm_j = {{11{inst[31]}}, inst[31], inst[19:12], inst[20], inst[30:21], 1'b0};
+   wire [31:0] imm_b = {{19{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8], 1'b0};
 
    instruction_memory  im(.A(PC),
                            .RD(inst)
                            );
-   wire [3:0] i;
-   wire        rfwe, jal, jalr, br, ws, mwe;
+   wire [3:0]  i;
+   wire        rfwe, jal, jalr, br, ws;
    wire [4:0]  aop;
    wire [1:0]  srcA;
    wire [2:0]  srcB;
@@ -28,7 +27,7 @@ module cpu (
                          .wb_src_sel_o(ws),
                          .branch_o(br),
                          .jal_o(jal),
-                         .jalr_o(jarl)
+                         .jalr_o(jalr)
                          );
 
 
@@ -78,7 +77,6 @@ module cpu (
                   .RD(mem)
                   );
    assign torf = (ws) ? mem : res;
-
    reg [31:0]  PC = 0;
    always @(posedge clk) PC <= topc;
    wire        control = jal | (comp & br);
