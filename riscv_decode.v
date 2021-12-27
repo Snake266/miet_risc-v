@@ -13,8 +13,11 @@ module riscv_decoder(
                      output reg                     illegal_instr_o, // Signal of incorrect instruction
                      output reg                     branch_o, // Signal of conditional jump
                      output reg                     jal_o, // Signal of unconditional jump "jal"
-                     output reg                     jalr_o          // Signal of unconditional jump "jalr"
+                     output reg                     jalr_o, // Signal of unconditional jump "jalr"
+                     input                          stall, // request to ban on changes to PC
+                     output                         enpc
                      );
+   assign enpc = ~stall;
 
    wire [6:0]                                       op_code = fetched_instr_i[6:0];
    wire [2:0]                                       funct3 = fetched_instr_i[14:12];
