@@ -40,11 +40,11 @@
 `define SYSTEM_OPCODE    5'b11_100
 
 // dmem type load store
-`define LDST_B           3'b000
-`define LDST_H           3'b001
-`define LDST_W           3'b010
-`define LDST_BU          3'b100
-`define LDST_HU          3'b101
+`define LDST_B           3'b000 // signed 8-bit
+`define LDST_H           3'b001 // signed 16-bit
+`define LDST_W           3'b010 // 32-bit
+`define LDST_BU          3'b100 // unsigned 8-bit
+`define LDST_HU          3'b101 // unsigned 16-bit
 
 // operand a selection
 `define OP_A_RS1         2'b00
