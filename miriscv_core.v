@@ -1,5 +1,16 @@
 module cpu (
-    input  clk
+            input  clk_i,
+            input  arstn_i,
+
+            input  instr_rdata_i,
+            output instr_addr_o,
+
+            input  data_rdata_i,
+            output data_req_o,
+            output data_we_o,
+            output data_be_o,
+            output data_addr_o,
+            output data_wdata_o,
             );
 
    wire [31:0] inst;
