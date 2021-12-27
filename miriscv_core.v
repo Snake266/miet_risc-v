@@ -1,31 +1,31 @@
-module cpu (
-            input  clk_i,
-            input  arstn_i,
+module miriscv_core(
+            input         clk_i,
+            input         arstn_i,
 
-            input  instr_rdata_i,
-            output instr_addr_o,
+            input [31:0]  instr_rdata_i,
+            output [31:0] instr_addr_o,
 
-            input  data_rdata_i,
-            output data_req_o,
-            output data_we_o,
-            output data_be_o,
-            output data_addr_o,
-            output data_wdata_o,
+            input [31:0]  data_rdata_i,
+            output        data_req_o,
+            output        data_we_o,
+            output [3:0]  data_be_o,
+            output [31:0] data_addr_o,
+            output [31:0] data_wdata_o
             );
 
    assign     instr_addr_o = PC;
    wire [31:0]     instr = instr_rdata_i;
 
    // SE
-   wire [31:0] imm_i = {{20{inst[31]}}, inst[31:20]};
-   wire [31:0] imm_s = {{20{inst[31]}}, inst[31:25], inst[11:7]};
-   wire [31:0] imm_j = {{11{inst[31]}}, inst[31], inst[19:12], inst[20], inst[30:21], 1'b0};
-   wire [31:0] imm_b = {{19{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8], 1'b0};
+   wire [31:0] imm_i = {{20{instr[31]}}, instr[31:20]};
+   wire [31:0] imm_s = {{20{instr[31]}}, instr[31:25], instr[11:7]};
+   wire [31:0] imm_j = {{11{instr[31]}}, instr[31], instr[19:12], instr[20], instr[30:21], 1'b0};
+   wire [31:0] imm_b = {{19{instr[31]}}, instr[31], instr[7], instr[30:25], instr[11:8], 1'b0};
 
 
-   // Instruction decoder
+   // Instrruction decoder
    wire [3:0]  i;
-   wire        rfwe, jal, jalr, br, ws;
+   wire        rfwe, jal, jalr, br, ws, stall, enpc;
    wire [4:0]  aop;
    wire [1:0]  srcA;
    wire [2:0]  srcB;
@@ -40,7 +40,9 @@ module cpu (
                          .wb_src_sel_o(ws),
                          .branch_o(br),
                          .jal_o(jal),
-                         .jalr_o(jalr)
+                         .jalr_o(jalr),
+                         .stall(stall),
+                         .enpc(enpc)
                          );
 
 
@@ -49,9 +51,9 @@ module cpu (
    wire [31:0] rd1, rd2;
    register_file rf(.CLK(clk),
                     .WE3(rfwe),
-                    .A1(inst[19:15]),
-                    .A2(inst[24:20]),
-                    .A3(inst[11:7]),
+                    .A1(instr[19:15]),
+                    .A2(instr[24:20]),
+                    .A3(instr[11:7]),
                     .RD1(rd1),
                     .RD2(rd2),
                     .WD3(torf)
@@ -68,7 +70,7 @@ module cpu (
       case(srcB)
         3'd0: ch2 <= rd2;
         3'd1: ch2 <= imm_i;
-        3'd2: ch2 <= {inst[31:12], 1'b0};
+        3'd2: ch2 <= {instr[31:12], 1'b0};
         3'd3: ch2 <= imm_s;
         3'd4: ch2 <= 32'd4;
       endcase // case (srcB)

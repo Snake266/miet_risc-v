@@ -1,25 +1,25 @@
 `include "miriscv_defines.v"
 
-module miriscv_lsu (
-                    input         clk_i,
-                    input         arstn_i, // reset of internal registers
+module miriscv_lsu(
+                    input             clk_i,
+                    input             arstn_i, // reset of internal registers
 
                     // core protocol
-                    input [31:0]  lsu_addr_i, //
-                    input         lsu_we_i, //flag, 1 -- need to write
-                    input [2:0]   lsu_size_i, // size of data to proccess
-                    input [31:0]  lsu_data_i, // data
-                    input         lsu_req_i, // flag, 1 -- need to read
-                    output        lsu_stall_req_o, // used as !enable PC
-                    output [31:0] lsu_data_o, // data out of memory =
+                    input [31:0]      lsu_addr_i, //
+                    input             lsu_we_i, //flag, 1 -- need to write
+                    input [2:0]       lsu_size_i, // size of data to proccess
+                    input [31:0]      lsu_data_i, // data
+                    input             lsu_req_i, // flag, 1 -- need to read
+                    output            lsu_stall_req_o, // used as !enable PC
+                    output reg [31:0] lsu_data_o, // data out of memory =
 
                     // memory protocol
-                    input [31:0]  data_rdata_i, // requested data
-                    output        data_req_o, // flag, 1 -- apply to memoty
-                    output        data_we_o, // flag, request to write or read: 0 to read, 1 to write
-                    output [3:0]  data_be_o, // to what bytes to apply
-                    output [31:0] data_addr_o, // adress to apply
-                    output [31:0] data_wdata_o // data that will be writed
+                    input [31:0]      data_rdata_i, // requested data
+                    output reg        data_req_o, // flag, 1 -- apply to memoty
+                    output reg        data_we_o, // flag, request to write or read: 0 to read, 1 to write
+                    output reg [3:0]  data_be_o, // to what bytes to apply
+                    output reg [31:0] data_addr_o, // adress to apply
+                    output reg [31:0] data_wdata_o // data that will be writed
                     );
    // contains a last state of request to stop PC at positve edge of clk
    reg                            last_pos_stall;
@@ -86,7 +86,7 @@ module miriscv_lsu (
                 2'b10: lsu_data_o <= { {16{data_rdata_i[31]}}, data_rdata_i[31:16] };
               endcase // case (byteoffset)
            end
-           `LSDT_W: begin // 32-bit (word)
+           `LDST_W: begin // 32-bit (word)
               lsu_data_o <= data_rdata_i[31:0];
            end
            `LDST_BU: begin // unsigned 8-bit with ZE to 32-bit
@@ -97,7 +97,7 @@ module miriscv_lsu (
                 2'b11: lsu_data_o <= {24'b0, data_rdata_i[31:24]};
               endcase // case (byteoffset)
            end
-           LDST_HU: begin // unsigned 16-bit with ZE to 32-bit
+           `LDST_HU: begin // unsigned 16-bit with ZE to 32-bit
               case(byteoffset)
                 2'b00: lsu_data_o <= {16'b0, data_rdata_i[15:0]};
                 2'b10: lsu_data_o <= {16'b0, data_rdata_i[31:16]};
