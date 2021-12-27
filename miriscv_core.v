@@ -13,21 +13,23 @@ module cpu (
             output data_wdata_o,
             );
 
-   wire [31:0] inst;
+   assign     instr_addr_o = PC;
+   wire [31:0]     instr = instr_rdata_i;
+
+   // SE
    wire [31:0] imm_i = {{20{inst[31]}}, inst[31:20]};
    wire [31:0] imm_s = {{20{inst[31]}}, inst[31:25], inst[11:7]};
    wire [31:0] imm_j = {{11{inst[31]}}, inst[31], inst[19:12], inst[20], inst[30:21], 1'b0};
    wire [31:0] imm_b = {{19{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8], 1'b0};
 
-   instruction_memory  im(.A(PC),
-                           .RD(inst)
-                           );
+
+   // Instruction decoder
    wire [3:0]  i;
    wire        rfwe, jal, jalr, br, ws;
    wire [4:0]  aop;
    wire [1:0]  srcA;
    wire [2:0]  srcB;
-   riscv_decoder decoder(.fetched_instr_i(inst),
+   riscv_decoder decoder(.fetched_instr_i(instr),
                          .ex_op_a_sel_o(srcA),
                          .ex_op_b_sel_o(srcB),
                          .alu_op_o(aop),
@@ -42,6 +44,7 @@ module cpu (
                          );
 
 
+   // register file
    wire [31:0] torf;
    wire [31:0] rd1, rd2;
    register_file rf(.CLK(clk),
@@ -78,18 +81,38 @@ module cpu (
                         .Result(res),
                         .Flag(comp)
                         );
+
+   // LSU modul
    wire [31:0] mem;
-   data_memory dm(
-                  .clk(clk),
-                  .WE(mwe),
-                  .I(i),
-                  .A(res),
-                  .WD(rd2),
-                  .RD(mem)
-                  );
+   miriscv_lsu lsu(
+                   .clk_i(clk_i),
+                   .arstn_i(arstn_i),
+
+                   .lsu_addr_i(res),
+                   .lsu_we_i(mwe),
+                   .lsu_size_i(i[2:0]),
+                   .lsu_data_i(rd2),
+                   .lsu_req_i(i[3]),
+                   .lsu_stall_req_o(stall),
+                   .lsu_data_o(mem),
+
+                   .data_rdata_i(data_rdata_i),
+                   .data_req_o(data_req_o),
+                   .data_we_o(data_we_o),
+                   .data_be_o(data_be_o),
+                   .data_addr_o(data_addr_o),
+                   .data_wdata_o(data_wdata_o)
+                   );
+
    assign torf = (ws) ? mem : res;
-   reg [31:0]  PC = 0;
-   always @(posedge clk) PC <= topc;
+
+   reg [31:0]  PC = 0; // program counter
+
+   always @(posedge clk_i) begin
+      if(~arstn_i) PC <= 0;
+      else if(enpc) PC <= topc;
+   end
+
    wire        control = jal | (comp & br);
    wire [31:0] immxsel = (br) ? imm_b : imm_j;
    wire [31:0] topcsum = (control) ? immxsel : 32'd4;
