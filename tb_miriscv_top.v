@@ -23,11 +23,17 @@ module tb_miriscv_top();
     rst_n = 1'b0;
     #RST_WAIT;
     rst_n = 1'b1;
+     #200 $finish;
+
   end
 
   always begin
     #HF_CYCLE;
     clk = ~clk;
   end
+   initial begin
+      $dumpfile("out.vcd");
+      $dumpvars;
+   end
 
 endmodule
